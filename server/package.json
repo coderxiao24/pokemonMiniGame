@@ -1,0 +1,21 @@
+{
+  "author": "肖楷炫 <xiaokaixuan24@163.com>",
+  "name": "pokemonapp",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node-dev ./bin/www"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "~2.6.1",
+    "express": "~4.16.1",
+    "figlet": "^1.7.0",
+    "http-errors": "~1.6.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.1",
+    "morgan": "~1.9.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}
