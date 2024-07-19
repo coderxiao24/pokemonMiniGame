@@ -1,7 +1,14 @@
 <template>
   <div>
     <a-row :gutter="12" style="width: 100%">
-      <a-col span="8">
+      <a-col
+        :xs="24"
+        :sm="24"
+        :md="24"
+        :lg="12"
+        :xl="12"
+        style="margin-bottom: 24px"
+      >
         <a-card>
           <template #actions>
             <a-button
@@ -28,12 +35,42 @@
           <a-card-meta :title="userInfo.nickname">
             <template #avatar>
               <a-avatar
+                @click="dev"
                 :src="userInfo.avatar ? baseUrl + userInfo.avatar : null"
               />
             </template>
           </a-card-meta>
 
           <a-row style="margin: 12px 0 0">
+            <a-col span="24" v-if="clickCount === 6">
+              <a-row>
+                <a-col span="6"
+                  ><span
+                    style="font-size: 1.5em; font-weight: bolder; color: orange"
+                    >遇闪概率:</span
+                  >
+                </a-col>
+                <a-col span="6">
+                  <a-slider
+                    v-model:value="shinyP"
+                    :step="0.1"
+                    :tipFormatter="(v) => `${v}%`"
+                  />
+                </a-col>
+
+                <a-col span="6"
+                  ><span
+                    style="font-size: 1.5em; font-weight: bolder; color: orange"
+                    >作弊选项:</span
+                  >
+                </a-col>
+                <a-col span="6">
+                  <a-button style="background-color: orange" @click="cheat"
+                    >加1W元</a-button
+                  >
+                </a-col>
+              </a-row>
+            </a-col>
             <a-col span="6">年龄：</a-col>
             <a-col span="6">{{ userInfo.age }}</a-col>
             <a-col span="6">性别：</a-col>
@@ -50,7 +87,7 @@
         </a-card>
       </a-col>
 
-      <a-col span="8">
+      <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
         <a-card>
           <a-card-meta title="商店">
             <template #avatar>
@@ -274,169 +311,183 @@
             <a-col span="24">
               <a-form-item
                 label="种族值"
-                :labelCol="{ span: 6 }"
-                :wrapperCol="{ span: 18 }"
+                :labelCol="{ span: 0 }"
+                :wrapperCol="{ span: 24 }"
               >
-                <div style="display: flex; align-items: center">
-                  <div style="width: 240px; height: 240px" id="Racial"></div>
-                  <table border="1" style="flex: 1; margin: 0 24px">
-                    <thead>
-                      <tr>
-                        <th>种族值</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td
-                          style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                          "
-                        >
-                          <span
+                <a-row>
+                  <a-col
+                    :xs="24"
+                    :sm="24"
+                    :md="24"
+                    :lg="12"
+                    :xl="12"
+                    id="Racial"
+                    style="height: 300px"
+                  ></a-col>
+
+                  <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
+                    <table border="1" style="width: 100%">
+                      <thead>
+                        <tr>
+                          <th>种族值</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td
                             style="
-                              background-color: #007ce7;
-                              color: #fff;
-                              text-wrap: nowrap;
+                              display: flex;
+                              justify-content: space-between;
+                              align-items: center;
                             "
-                            :style="{
-                              width: `${
-                                (currentPokemon.feStat[0] / 255) * 100
-                              }%`,
-                            }"
-                            >HP: </span
-                          ><span>{{ currentPokemon.feStat[0] }}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                          "
-                        >
-                          <span
+                          >
+                            <span
+                              style="
+                                background-color: #007ce7;
+                                color: #fff;
+                                text-wrap: nowrap;
+                              "
+                              :style="{
+                                width: `${
+                                  (currentPokemon.feStat[0] / 255) * 100
+                                }%`,
+                              }"
+                              >HP: </span
+                            ><span>{{ currentPokemon.feStat[0] }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
                             style="
-                              background-color: #007ce7;
-                              color: #fff;
-                              text-wrap: nowrap;
+                              display: flex;
+                              justify-content: space-between;
+                              align-items: center;
                             "
-                            :style="{
-                              width: `${
-                                (currentPokemon.feStat[1] / 255) * 100
-                              }%`,
-                            }"
-                            >攻击:</span
-                          ><span>{{ currentPokemon.feStat[1] }}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                          "
-                        >
-                          <span
+                          >
+                            <span
+                              style="
+                                background-color: #007ce7;
+                                color: #fff;
+                                text-wrap: nowrap;
+                              "
+                              :style="{
+                                width: `${
+                                  (currentPokemon.feStat[1] / 255) * 100
+                                }%`,
+                              }"
+                              >攻击:</span
+                            ><span>{{ currentPokemon.feStat[1] }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
                             style="
-                              background-color: #007ce7;
-                              color: #fff;
-                              text-wrap: nowrap;
+                              display: flex;
+                              justify-content: space-between;
+                              align-items: center;
                             "
-                            :style="{
-                              width: `${
-                                (currentPokemon.feStat[2] / 255) * 100
-                              }%`,
-                            }"
-                            >防御:</span
-                          ><span>{{ currentPokemon.feStat[2] }}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                          "
-                        >
-                          <span
+                          >
+                            <span
+                              style="
+                                background-color: #007ce7;
+                                color: #fff;
+                                text-wrap: nowrap;
+                              "
+                              :style="{
+                                width: `${
+                                  (currentPokemon.feStat[2] / 255) * 100
+                                }%`,
+                              }"
+                              >防御:</span
+                            ><span>{{ currentPokemon.feStat[2] }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
                             style="
-                              background-color: #007ce7;
-                              color: #fff;
-                              text-wrap: nowrap;
+                              display: flex;
+                              justify-content: space-between;
+                              align-items: center;
                             "
-                            :style="{
-                              width: `${
-                                (currentPokemon.feStat[3] / 255) * 100
-                              }%`,
-                            }"
-                            >特攻:</span
-                          ><span>{{ currentPokemon.feStat[3] }}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                          "
-                        >
-                          <span
+                          >
+                            <span
+                              style="
+                                background-color: #007ce7;
+                                color: #fff;
+                                text-wrap: nowrap;
+                              "
+                              :style="{
+                                width: `${
+                                  (currentPokemon.feStat[3] / 255) * 100
+                                }%`,
+                              }"
+                              >特攻:</span
+                            ><span>{{ currentPokemon.feStat[3] }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
                             style="
-                              background-color: #007ce7;
-                              color: #fff;
-                              text-wrap: nowrap;
+                              display: flex;
+                              justify-content: space-between;
+                              align-items: center;
                             "
-                            :style="{
-                              width: `${
-                                (currentPokemon.feStat[4] / 255) * 100
-                              }%`,
-                            }"
-                            >特防:</span
-                          ><span>{{ currentPokemon.feStat[4] }}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          style="
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                          "
-                        >
-                          <span
+                          >
+                            <span
+                              style="
+                                background-color: #007ce7;
+                                color: #fff;
+                                text-wrap: nowrap;
+                              "
+                              :style="{
+                                width: `${
+                                  (currentPokemon.feStat[4] / 255) * 100
+                                }%`,
+                              }"
+                              >特防:</span
+                            ><span>{{ currentPokemon.feStat[4] }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
                             style="
-                              background-color: #007ce7;
-                              color: #fff;
-                              text-wrap: nowrap;
+                              display: flex;
+                              justify-content: space-between;
+                              align-items: center;
                             "
-                            :style="{
-                              width: `${
-                                (currentPokemon.feStat[5] / 255) * 100
-                              }%`,
-                            }"
-                            >速度:</span
-                          ><span>{{ currentPokemon.feStat[5] }}</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                          >
+                            <span
+                              style="
+                                background-color: #007ce7;
+                                color: #fff;
+                                text-wrap: nowrap;
+                              "
+                              :style="{
+                                width: `${
+                                  (currentPokemon.feStat[5] / 255) * 100
+                                }%`,
+                              }"
+                              >速度:</span
+                            ><span>{{ currentPokemon.feStat[5] }}</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </a-col>
+                </a-row>
               </a-form-item>
             </a-col>
           </a-row>
         </a-form>
 
         <template #actions v-if="!look">
-          <a-button @click="attack">攻击</a-button>
-          <a-button @click="catchPokemon"
-            >捕捉 剩余{{ userInfo.ballNum }}个精灵球</a-button
+          <a-button
+            @click="attack"
+            type="primary"
+            :danger="currentPokemon.hp === 1"
+            >攻击</a-button
           >
+          <a-button @click="catchPokemon">捕捉 </a-button>
           <a-button
             @click="
               open = false;
@@ -459,6 +510,7 @@
       <a-card>
         <a-card-grid
           style="
+            padding: 0;
             width: 25%;
             display: flex;
             flex-direction: column;
@@ -468,7 +520,7 @@
           v-for="item in userInfo.pokemons"
         >
           <img
-            style="width: 50%; cursor: pointer"
+            style="width: 60%; cursor: pointer"
             :src="baseUrl + item['gif']"
             @click="
               open1 = false;
@@ -487,8 +539,42 @@
             cancel-text="不放了"
             @confirm="setFree(item._id)"
           >
-            <a-button type="primary" danger>放生</a-button>
+            <a-button
+              type="primary"
+              danger
+              style="margin-bottom: 8px"
+              size="small"
+              >放生</a-button
+            >
           </a-popconfirm>
+
+          <a-popconfirm
+            title="确认出售吗?"
+            ok-text="确定"
+            cancel-text="不卖了"
+            @confirm="sell(item)"
+          >
+            <a-button
+              type="primary"
+              style="background-color: orange"
+              size="small"
+              >出售</a-button
+            >
+          </a-popconfirm>
+
+          价值
+          <span
+            :style="{ color: item.isShiny == 2 ? 'orange' : '' }"
+            style="font-weight: bolder; font-size: 1.25em"
+          >
+            {{
+              item.stat
+                .split(",")
+                .reduce((total, num) => total * 1 + num * 1, 0) *
+              (item.isShiny == 2 ? 100 : 1)
+            }}
+          </span>
+          元
         </a-card-grid>
       </a-card>
     </a-modal>
@@ -544,6 +630,8 @@ const findPokemon = async (id) => {
   return res.data.data[0];
 };
 
+const shinyP = ref<number>(1);
+
 const openPokemonModal = async (id) => {
   if (!id) {
     id = Math.floor(Math.random() * (pokemonsLen.value + 1));
@@ -561,7 +649,9 @@ const openPokemonModal = async (id) => {
   currentPokemon.value.hp = currentPokemon.value.feStat[0];
 
   if (!currentPokemon.value.isShiny) {
-    currentPokemon.value.isShiny = generateRandomBoolean("10%") ? 2 : 1;
+    currentPokemon.value.isShiny = generateRandomBoolean(`${shinyP.value}%`)
+      ? 2
+      : 1;
   }
 
   for (let i = 0; i < currentPokemon.value.feChain.length; i++) {
@@ -607,11 +697,12 @@ const openPokemonModal = async (id) => {
 };
 
 const attack = () => {
-  currentPokemon.value.hp -= userInfo.value.ad;
-  if (currentPokemon.value.hp <= 0) {
-    currentPokemon.value.hp = 0;
+  if (currentPokemon.value.hp === 1) {
+    // 这次即将击杀了
+
     open.value = false;
     look.value = false;
+
     editUser({
       _id: userInfo.value._id,
       data: {
@@ -625,6 +716,11 @@ const attack = () => {
         loadUser();
       }
     });
+  } else {
+    currentPokemon.value.hp -= userInfo.value.ad;
+    if (currentPokemon.value.hp <= 0) {
+      currentPokemon.value.hp = 1;
+    }
   }
 };
 const buy = (record) => {
@@ -642,6 +738,39 @@ const buy = (record) => {
   }).then((res) => {
     if (res.data.ok === 1) {
       message.success(`${name}购买成功！`);
+      loadUser();
+    }
+  });
+};
+
+const sell = (record) => {
+  doSet(record._id).then((res) => {
+    if (res.data.ok === 1) {
+      const money =
+        record.stat.split(",").reduce((total, num) => total * 1 + num * 1, 0) *
+        (record.isShiny == 2 ? 100 : 1);
+
+      const data = { money: money };
+
+      editUser({
+        _id: userInfo.value._id,
+        data,
+      }).then((res) => {
+        if (res.data.ok === 1) {
+          message.success(`${record.name}出售成功,获得${money}元！`);
+          loadUser();
+        }
+      });
+    }
+  });
+};
+const cheat = () => {
+  editUser({
+    _id: userInfo.value._id,
+    data: { money: 10000 },
+  }).then((res) => {
+    if (res.data.ok === 1) {
+      message.success(`作弊成功,获得1W元！`);
       loadUser();
     }
   });
@@ -702,14 +831,18 @@ const catchPokemon = () => {
 };
 
 const setFree = (pokemonId) => {
-  setFreePokemon({
-    userId: userInfo.value._id,
-    pokemonId,
-  }).then((res) => {
+  doSet(pokemonId).then((res) => {
     if (res.data.ok === 1) {
       loadUser();
       message.error(`放生成功！`);
     }
+  });
+};
+
+const doSet = (pokemonId) => {
+  return setFreePokemon({
+    userId: userInfo.value._id,
+    pokemonId,
   });
 };
 
@@ -728,6 +861,28 @@ const loadUser = () => {
       }
       if (res.data.ok === 1) userInfo.value = res.data.data[0];
     });
+};
+
+const clickCount = ref<number>(0);
+const lastClickTime = ref<number>(Date.now());
+
+const dev = () => {
+  if (clickCount.value < 6) {
+    if (Date.now() - lastClickTime.value <= 500) {
+      clickCount.value++;
+    } else clickCount.value = 0;
+
+    if (clickCount.value >= 3) {
+      clickCount.value == 6
+        ? message.success(`已进入开发者模式，再次点击以退出开发者模式`)
+        : message.info(`再点${6 - clickCount.value}次进入开发者模式`);
+    }
+  } else {
+    clickCount.value = 0;
+    message.error(`已退出开发者模式`);
+  }
+
+  lastClickTime.value = Date.now();
 };
 
 onMounted(() => {

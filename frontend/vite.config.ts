@@ -15,11 +15,11 @@ export default defineConfig({
   server: {
     proxy: {
       "/xkx": {
-        target: "http://localhost:3000/",
+        target: "http://123.57.91.8:80/",
         changeOrigin: true,
-        rewrite: (path) => {
-          return path.replace(/\/xkx/, "");
-        },
+        // rewrite: (path) => {
+        //   return path.replace(/\/xkx/, "");
+        // },
       },
     },
   },

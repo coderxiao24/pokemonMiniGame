@@ -22,6 +22,7 @@
 import { ref, toRaw } from "vue";
 
 import { PlusOutlined, LoadingOutlined } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
 
 import { login } from "@/api/users";
 
@@ -65,7 +66,7 @@ const onSubmit = () => {
         if (res.data.ok === 1) {
           router.push("/");
           localStorage.setItem("user", JSON.stringify(res.data.data[0]));
-        }
+        } else message.error(`用户名或密码不正确！`);
       });
     })
     .catch((error) => {
