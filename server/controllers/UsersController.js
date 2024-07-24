@@ -10,6 +10,10 @@ const UsersController = {
     const data = await UsersService.getUser(req.query);
     res.send({ ok: 1, data });
   },
+  getUserTop5: async (req, res) => {
+    const data = await UsersService.getUserTop5(req.query);
+    res.send({ ok: 1, data });
+  },
   login: async (req, res) => {
     const { username, password } = req.body;
     const data = await UsersService.login(username, password);

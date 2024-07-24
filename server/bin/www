@@ -17,7 +17,7 @@ const figlet = require("figlet");
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || "3000");
+const port = normalizePort(process.env.PORT || "1124");
 app.set("port", port);
 
 /**
@@ -42,7 +42,7 @@ server.listen(port, () => {
         console.dir(err);
         return;
       }
-      console.log(data);
+      console.log(`\n${data}\n`);
     }
   );
 });

@@ -14,7 +14,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 router.post("/", upload.single("file"), function (req, res, next) {
   res.send({ ok: 1, path: `/uploads/${req.file.filename}` });

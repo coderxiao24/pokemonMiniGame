@@ -7,7 +7,7 @@
         :md="24"
         :lg="12"
         :xl="12"
-        style="margin-bottom: 24px"
+        style="margin-bottom: 8px"
       >
         <a-card>
           <template #actions>
@@ -18,7 +18,12 @@
               >寻找宝可梦</a-button
             >
 
-            <a-button :icon="h(SmileTwoTone)" @click="open1 = true"
+            <a-button
+              :icon="h(SmileTwoTone)"
+              @click="
+                computer = userInfo;
+                open1 = true;
+              "
               >电脑</a-button
             >
             <a-popconfirm
@@ -71,6 +76,7 @@
                 </a-col>
               </a-row>
             </a-col>
+
             <a-col span="6">年龄：</a-col>
             <a-col span="6">{{ userInfo.age }}</a-col>
             <a-col span="6">性别：</a-col>
@@ -87,7 +93,14 @@
         </a-card>
       </a-col>
 
-      <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
+      <a-col
+        :xs="24"
+        :sm="24"
+        :md="24"
+        :lg="12"
+        :xl="12"
+        style="margin-bottom: 8px"
+      >
         <a-card>
           <a-card-meta title="商店">
             <template #avatar>
@@ -142,6 +155,86 @@
           </a-table>
         </a-card>
       </a-col>
+
+      <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
+        <a-card>
+          <a-card-meta title="玩家排行榜"> </a-card-meta>
+          <div style="margin: 12px 0">
+            <a-radio-group
+              v-model:value="rankingType"
+              button-style="solid"
+              @change="rankingTypeChange"
+            >
+              <a-radio-button :value="0">富豪榜</a-radio-button>
+              <a-radio-button :value="1">宝可梦大师榜</a-radio-button>
+            </a-radio-group>
+
+            <a-button
+              style="float: right"
+              size="small"
+              type="primary"
+              shape="circle"
+              :icon="h(RedoOutlined)"
+              :loading="loading"
+              @click="loadTop5User"
+            />
+          </div>
+
+          <a-list
+            :key="rankingType"
+            size="small"
+            item-layout="horizontal"
+            :data-source="top5Users"
+          >
+            <template #renderItem="{ item }">
+              <a-list-item>
+                <template #actions>
+                  <a-button
+                    @click="
+                      computer = item;
+                      open1 = true;
+                    "
+                    size="small"
+                    type="primary"
+                    >{{
+                      item._id == userInfo._id ? "您的电脑" : "他的电脑"
+                    }}</a-button
+                  >
+                </template>
+                <a-list-item-meta>
+                  <template #description>
+                    {{ item._id == userInfo._id ? "您" : "" }}拥有
+                    <span style="color: orange; font-weight: bolder">
+                      {{
+                        rankingType
+                          ? `${item.pokemons?.length}`
+                          : `￥${item.money}`
+                      }}</span
+                    >
+                    {{ rankingType ? "只宝可梦" : "元" }}
+                  </template>
+                  <template #title>
+                    <span
+                      :style="
+                        item._id == userInfo._id
+                          ? 'color: orange; font-weight: bolder'
+                          : ' '
+                      "
+                    >
+                      {{ item.nickname }}</span
+                    >
+                  </template>
+                  <template #avatar>
+                    <a-avatar
+                      :src="item.avatar ? baseUrl + item.avatar : null"
+                    />
+                  </template>
+                </a-list-item-meta>
+              </a-list-item>
+            </template>
+          </a-list>
+        </a-card>
+      </a-col>
     </a-row>
 
     <a-modal
@@ -156,23 +249,26 @@
         open = false;
         look = false;
       "
+      :centered="!look"
+      forceRender
     >
       <template #title>
         <b :style="{ color: currentPokemon.isShiny == 2 ? 'orange' : '' }">
           {{
             look
-              ? `你的【 
+              ? `【 
             ${
               (currentPokemon["isShiny"] == 2 ? "☆★☆闪光☆★☆  " : "") +
               currentPokemon["name"]
             }】`
               : (currentPokemon["isShiny"] == 2 ? "☆★☆闪光☆★☆  " : "") +
-                "野生宝可梦"
+                "野生" +
+                currentPokemon["name"]
           }}
         </b>
       </template>
 
-      <a-card>
+      <a-card :bodyStyle="{ padding: '0 8px' }">
         <div style="display: flex; align-items: center">
           <span>hp:</span
           ><a-progress
@@ -214,6 +310,7 @@
             align-items: center;
             margin-bottom: 24px;
           "
+          ref="img"
         >
           <img
             style="max-width: 200px; cursor: pointer; margin: 24px 0"
@@ -236,7 +333,7 @@
 
         <a-form v-bind="formItemLayout">
           <a-row>
-            <a-col span="12">
+            <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
               <a-form-item label="宝可梦">
                 <a-input
                   disabled
@@ -247,7 +344,7 @@
                 />
               </a-form-item>
             </a-col>
-            <a-col span="12">
+            <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
               <a-form-item label="属性">
                 <a-input
                   disabled
@@ -256,16 +353,24 @@
               </a-form-item>
             </a-col>
 
-            <a-col span="12">
+            <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
               <a-form-item label="捕捉成功概率">
                 <a-textarea
                   auto-size
                   disabled
-                  :value="currentPokemon['catchRate']"
+                  :value="`${
+                    parseFloat(currentPokemon['catchRate']) *
+                    ((currentPokemon.hp / currentPokemon.feStat[0]) * 100 <= 50
+                      ? (currentPokemon.hp / currentPokemon.feStat[0]) * 100 <=
+                        25
+                        ? 3
+                        : 2
+                      : 1)
+                  }%`"
                 />
               </a-form-item>
             </a-col>
-            <a-col span="12">
+            <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12" v-if="look">
               <a-form-item label="宝可梦描述">
                 <a-textarea
                   auto-size
@@ -274,7 +379,7 @@
                 />
               </a-form-item>
             </a-col>
-            <a-col span="24" v-if="look">
+            <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12" v-if="look">
               <a-form-item
                 label="进化链"
                 :labelCol="{ span: 6 }"
@@ -308,7 +413,7 @@
                 </div>
               </a-form-item>
             </a-col>
-            <a-col span="24">
+            <a-col span="24" v-if="look">
               <a-form-item
                 label="种族值"
                 :labelCol="{ span: 0 }"
@@ -508,6 +613,10 @@
       :width="1000"
     >
       <a-card>
+        <a-empty
+          v-if="!computer.pokemons.length"
+          description="还没有宝可梦呢"
+        />
         <a-card-grid
           style="
             padding: 0;
@@ -517,7 +626,7 @@
             align-items: center;
             justify-content: space-around;
           "
-          v-for="item in userInfo.pokemons"
+          v-for="item in computer.pokemons"
         >
           <img
             style="width: 60%; cursor: pointer"
@@ -540,6 +649,7 @@
             @confirm="setFree(item._id)"
           >
             <a-button
+              v-if="computer._id == userInfo._id"
               type="primary"
               danger
               style="margin-bottom: 8px"
@@ -555,6 +665,7 @@
             @confirm="sell(item)"
           >
             <a-button
+              v-if="computer._id == userInfo._id"
               type="primary"
               style="background-color: orange"
               size="small"
@@ -583,7 +694,7 @@
 <script lang="ts" setup>
 import * as echarts from "echarts";
 
-import { ref, toRaw, onMounted, nextTick, h } from "vue";
+import { ref, toRaw, onMounted, nextTick, h, onBeforeUnmount } from "vue";
 
 import {
   SettingOutlined,
@@ -594,9 +705,10 @@ import {
   SearchOutlined,
   ArrowRightOutlined,
   DollarTwoTone,
+  RedoOutlined,
 } from "@ant-design/icons-vue";
 import { getPokemon } from "@/api/pokemon";
-import { getUser, editUser, setFreePokemon } from "@/api/users";
+import { getUser, editUser, setFreePokemon, getUserTop5 } from "@/api/users";
 
 import { useRouter } from "vue-router";
 const router = useRouter();
@@ -664,39 +776,45 @@ const openPokemonModal = async (id) => {
   }
 
   open.value = true;
-  nextTick(() => {
-    const myChart = echarts.init(document.getElementById("Racial"));
-    const option = {
-      tooltip: {
-        trigger: "item",
-      },
-      radar: {
-        indicator: [
-          { name: "HP", max: 255 },
-          { name: "攻击", max: 255 },
-          { name: "防御", max: 255 },
-          { name: "特攻", max: 255 },
-          { name: "特防", max: 255 },
-          { name: "速度", max: 255 },
-        ],
-      },
-      series: [
-        {
-          type: "radar",
-          data: [
-            {
-              value: currentPokemon.value.feStat,
-              name: currentPokemon.value.name,
-            },
+  look.value &&
+    nextTick(() => {
+      const myChart = echarts.init(document.getElementById("Racial"));
+      const option = {
+        tooltip: {
+          trigger: "item",
+        },
+        radar: {
+          indicator: [
+            { name: "HP", max: 255 },
+            { name: "攻击", max: 255 },
+            { name: "防御", max: 255 },
+            { name: "特攻", max: 255 },
+            { name: "特防", max: 255 },
+            { name: "速度", max: 255 },
           ],
         },
-      ],
-    };
-    option && myChart.setOption(option);
-  });
+        series: [
+          {
+            type: "radar",
+            data: [
+              {
+                value: currentPokemon.value.feStat,
+                name: currentPokemon.value.name,
+              },
+            ],
+          },
+        ],
+      };
+      option && myChart.setOption(option);
+    });
 };
-
+const img = ref(null);
 const attack = () => {
+  img.value.classList.add("attacked");
+  setTimeout(() => {
+    img.value.classList.remove("attacked");
+  }, 300);
+
   if (currentPokemon.value.hp === 1) {
     // 这次即将击杀了
 
@@ -721,6 +839,10 @@ const attack = () => {
     if (currentPokemon.value.hp <= 0) {
       currentPokemon.value.hp = 1;
     }
+
+    message.success(
+      `攻击成功，${currentPokemon.value.name}还剩${currentPokemon.value.hp}滴血!`
+    );
   }
 };
 const buy = (record) => {
@@ -755,10 +877,11 @@ const sell = (record) => {
       editUser({
         _id: userInfo.value._id,
         data,
-      }).then((res) => {
+      }).then(async (res) => {
         if (res.data.ok === 1) {
           message.success(`${record.name}出售成功,获得${money}元！`);
-          loadUser();
+          await loadUser();
+          computer.value = userInfo.value;
         }
       });
     }
@@ -831,10 +954,11 @@ const catchPokemon = () => {
 };
 
 const setFree = (pokemonId) => {
-  doSet(pokemonId).then((res) => {
+  doSet(pokemonId).then(async (res) => {
     if (res.data.ok === 1) {
-      loadUser();
-      message.error(`放生成功！`);
+      await loadUser();
+      computer.value = userInfo.value;
+      message.success(`放生成功！`);
     }
   });
 };
@@ -850,10 +974,11 @@ const loadUser = () => {
   const { _id } = localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user"))
     : {};
-  _id &&
-    getUser({ _id }).then((res) => {
+
+  if (_id) {
+    return getUser({ _id }).then((res) => {
       console.log(res);
-      if (!res.data.data.length) {
+      if (!res.data?.data?.length) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         router.push("/login");
@@ -861,6 +986,11 @@ const loadUser = () => {
       }
       if (res.data.ok === 1) userInfo.value = res.data.data[0];
     });
+  } else {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  }
 };
 
 const clickCount = ref<number>(0);
@@ -885,11 +1015,67 @@ const dev = () => {
   lastClickTime.value = Date.now();
 };
 
+const rankingType = ref<number>(0);
+const top5Users = ref<Array>([]);
+
+const computer = ref<object>({
+  pokemons: [],
+});
+
+const rankingTypeChange = () => {
+  loadTop5User();
+};
+
+const loading = ref<boolean>(false);
+const loadTop5User = () => {
+  loading.value = true;
+  getUserTop5({ rankingType: rankingType.value }).then((res) => {
+    loading.value = false;
+
+    if (res.data.ok === 1) {
+      message.success("排行榜自动刷新成功！");
+      top5Users.value = res.data.data;
+    }
+  });
+};
+
+const timer = ref(null);
+
 onMounted(() => {
   loadUser();
+  loadTop5User();
+  timer.value = setInterval(loadTop5User, 1000 * 10);
 
   getPokemon().then((res) => {
     pokemonsLen.value = res.data.data;
   });
 });
+
+onBeforeUnmount(() => {
+  timer.value && clearInterval(timer.value);
+});
 </script>
+
+<style>
+@keyframes shake {
+  0% {
+    transform: translate(5px, 0);
+  }
+  25% {
+    transform: translate(-5px, 0);
+  }
+  50% {
+    transform: translate(5px, 0);
+  }
+  75% {
+    transform: translate(-5px, 0);
+  }
+  100% {
+    transform: translate(5px, 0);
+  }
+}
+.attacked img {
+  animation: shake 0.3s;
+  animation-timing-function: ease-in-out;
+}
+</style>

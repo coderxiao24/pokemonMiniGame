@@ -1,9 +1,9 @@
 import axios from "axios";
 
 import NProgress from "nprogress";
-
+import { baseUrl } from "@/config/index";
 const instance = axios.create({
-  baseURL: "/xkx",
+  baseURL: baseUrl,
   timeout: 1000 * 10,
 });
 

@@ -62,7 +62,7 @@ app.use("/upload", uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+  res.status(404).sendFile(__dirname + "/public/index.html");
 });
 
 // error handler

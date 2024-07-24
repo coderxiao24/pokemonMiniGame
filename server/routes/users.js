@@ -6,6 +6,7 @@ const UsersController = require("../controllers/UsersController");
 // 初始化数据库
 router.post("/", UsersController.add);
 router.get("/", UsersController.getUser);
+router.get("/top5", UsersController.getUserTop5);
 
 router.post("/editUser", UsersController.editUser);
 router.post("/setFree", UsersController.setFree);

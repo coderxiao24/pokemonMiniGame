@@ -31,6 +31,16 @@ export function getUser(params) {
 }
 
 /**
+ * 查询排行榜用户
+ * @param {object} data
+ * @return {object} 结果
+ * @author 楷炫
+ */
+export function getUserTop5(params) {
+  return axios({ method: "get", url: "/users/top5", params });
+}
+
+/**
  * 编辑用户信息
  * @param {object} data
  * @return {object} 结果

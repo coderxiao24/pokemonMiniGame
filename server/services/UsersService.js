@@ -7,6 +7,9 @@ const UsersService = {
     if (findUsers.length) return { ok: 0, message: "已存在该账号" };
 
     data.password = MD5(data.password);
+    !data.age && (data.age = 18);
+    !data.gender && (data.gender = "male");
+    !data.avatar && (data.avatar = "/default.png");
 
     const res = await UserModel.create({
       ...data,
@@ -20,6 +23,43 @@ const UsersService = {
   getUser: (data) => {
     console.log(data);
     return UserModel.find(data);
+  },
+  getUserTop5: (data) => {
+    const param = {};
+    if (data.rankingType == 0) {
+      param["money"] = -1;
+      return UserModel.find({}).sort({ money: -1 }).limit(5);
+    } else {
+      return UserModel.aggregate([
+        {
+          $project: {
+            // 按照 pokemons 数组长度计算 length 字段
+            pokemonsLength: { $size: "$pokemons" },
+            userData: "$$ROOT",
+          },
+        },
+        {
+          // 根据 pokemonsLength 降序排序
+          $sort: { pokemonsLength: -1 },
+        },
+        {
+          // 限制返回的结果为前 5 条
+          $limit: 5,
+        },
+
+        {
+          // 重构文档，将原始数据放回去
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: [
+                "$userData",
+                { pokemonsLength: "$pokemonsLength" },
+              ],
+            },
+          },
+        },
+      ]);
+    }
   },
   login: (username, password) => {
     password = MD5(password);

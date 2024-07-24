@@ -12,6 +12,7 @@
           list-type="picture-card"
           :show-upload-list="false"
           :maxCount="1"
+          accept="image/*"
           :action="baseUrl + 'upload'"
           @change="handleChange"
         >
@@ -129,27 +130,6 @@ const rules = <any>{
       trigger: "change",
     },
   ],
-  avatar: [
-    {
-      required: true,
-      message: "请上传头像",
-      trigger: "change",
-    },
-  ],
-  age: [
-    {
-      required: true,
-      message: "请选择年龄",
-      trigger: "change",
-    },
-  ],
-  gender: [
-    {
-      required: true,
-      message: "请选择性别",
-      trigger: "change",
-    },
-  ],
 };
 
 const onSubmit = () => {
@@ -158,7 +138,12 @@ const onSubmit = () => {
     .then(() => {
       addUser(formState.value).then((res) => {
         console.log(res);
-        if (res.data.ok === 1) router.push("/login");
+        if (res.data.ok === 1) {
+          message.success("注册成功！");
+          router.push("/login");
+        } else if (res.data.ok === 0) {
+          message.error(res.data.message);
+        }
       });
     })
     .catch((error) => {
