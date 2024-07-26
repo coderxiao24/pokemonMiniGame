@@ -89,6 +89,23 @@
             <a-col span="6">{{ userInfo.money }}元</a-col>
             <a-col span="6">精灵球：</a-col>
             <a-col span="6">{{ userInfo.ballNum }}个</a-col>
+            <a-col span="12"></a-col>
+            <a-col span="6">大喇叭：</a-col>
+            <a-col span="18">
+              <a-input-group compact>
+                <a-input
+                  style="width: calc(100% - 60px)"
+                  v-model:value="allText"
+                />
+                <a-button
+                  type="primary"
+                  @click="send('all')"
+                  style="width: 60px"
+                >
+                  发送</a-button
+                >
+              </a-input-group>
+            </a-col>
           </a-row>
         </a-card>
       </a-col>
@@ -158,7 +175,6 @@
 
       <a-col :xs="24" :sm="24" :md="24" :lg="12" :xl="12">
         <a-card>
-          <a-card-meta title="玩家排行榜"> </a-card-meta>
           <div style="margin: 12px 0">
             <a-radio-group
               v-model:value="rankingType"
@@ -167,6 +183,7 @@
             >
               <a-radio-button :value="0">富豪榜</a-radio-button>
               <a-radio-button :value="1">宝可梦大师榜</a-radio-button>
+              <a-radio-button :value="2">在线玩家</a-radio-button>
             </a-radio-group>
 
             <a-button
@@ -181,15 +198,15 @@
           </div>
 
           <a-list
-            :key="rankingType"
             size="small"
             item-layout="horizontal"
-            :data-source="top5Users"
+            :data-source="rankingType == 2 ? onlineUsers : top5Users"
           >
             <template #renderItem="{ item }">
               <a-list-item>
                 <template #actions>
                   <a-button
+                    v-if="rankingType != 2"
                     @click="
                       computer = item;
                       open1 = true;
@@ -200,9 +217,23 @@
                       item._id == userInfo._id ? "您的电脑" : "他的电脑"
                     }}</a-button
                   >
+
+                  <a-button
+                    v-else-if="!item.showSend && item._id != userInfo._id"
+                    type="primary"
+                    @click="
+                      () => {
+                        if (onlineUsers.find((v) => v.showSend))
+                          onlineUsers.find((v) => v.showSend).showSend = false;
+                        item.showSend = true;
+                      }
+                    "
+                    style="width: 60px"
+                    >私聊</a-button
+                  >
                 </template>
                 <a-list-item-meta>
-                  <template #description>
+                  <template #description v-if="rankingType != 2">
                     {{ item._id == userInfo._id ? "您" : "" }}拥有
                     <span style="color: orange; font-weight: bolder">
                       {{
@@ -223,6 +254,21 @@
                     >
                       {{ item.nickname }}</span
                     >
+
+                    <div v-if="rankingType == 2 && item._id != userInfo._id">
+                      <a-input-group compact v-if="item.showSend">
+                        <a-input
+                          style="width: calc(100% - 60px)"
+                          v-model:value="singleText"
+                        />
+                        <a-button
+                          type="primary"
+                          @click="send(item._id)"
+                          style="width: 60px"
+                          >发送</a-button
+                        >
+                      </a-input-group>
+                    </div>
                   </template>
                   <template #avatar>
                     <a-avatar
@@ -714,7 +760,9 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 import { baseUrl } from "@/config/index";
 
-import { message } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
+
+import { io } from "socket.io-client";
 
 const formItemLayout = {
   labelCol: { span: 12 },
@@ -764,6 +812,9 @@ const openPokemonModal = async (id) => {
     currentPokemon.value.isShiny = generateRandomBoolean(`${shinyP.value}%`)
       ? 2
       : 1;
+
+    if (currentPokemon.value.isShiny === 2)
+      socket.emit("sendAll", `我遇到了闪光${currentPokemon.value.name}!!!`);
   }
 
   for (let i = 0; i < currentPokemon.value.feChain.length; i++) {
@@ -977,7 +1028,6 @@ const loadUser = () => {
 
   if (_id) {
     return getUser({ _id }).then((res) => {
-      console.log(res);
       if (!res.data?.data?.length) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -1023,6 +1073,7 @@ const computer = ref<object>({
 });
 
 const rankingTypeChange = () => {
+  if (rankingType.value == 2) return;
   loadTop5User();
 };
 
@@ -1041,6 +1092,67 @@ const loadTop5User = () => {
 
 const timer = ref(null);
 
+let socket = null;
+
+const onlineUsers = ref<Array>([]);
+const ws = () => {
+  socket = io(`ws://123.57.91.8:1124?token=${localStorage.getItem("token")}`);
+
+  // socket = io(
+  //   `ws://${window.location.hostname}:1124?token=${localStorage.getItem(
+  //     "token"
+  //   )}`
+  // );
+
+  socket.on("connect", () => {
+    socket.emit("onlineUsers");
+  });
+  socket.on("error", (msg) => {
+    //  token过期了
+    message.error(msg.data);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  });
+  socket.on("onlineUsers", (msg) => {
+    onlineUsers.value = Array.from(
+      new Map(msg.data.map((item) => [item._id, item])).values()
+    );
+  });
+  socket.on("welcome", (msg) => {
+    notification.success({
+      message: `欢迎${msg.data.nickname}上线了！`,
+      duration: 2,
+    });
+  });
+  socket.on("sendAll", (msg) => {
+    message.info(`来自${msg.user.nickname}的广播:${msg.data}`);
+  });
+  socket.on("send", (msg) => {
+    message.info(`来自${msg.user.nickname}的私聊:${msg.data}`);
+  });
+};
+
+const allText = ref<string>("");
+const singleText = ref<string>("");
+function send(to) {
+  if (to == "all") {
+    if (!allText.value) message.error("请输入要广播的消息");
+    else {
+      socket.emit("sendAll", allText.value);
+      message.success("广播成功！");
+      allText.value = "";
+    }
+  } else {
+    if (!singleText.value) message.error("请输入要私聊的消息");
+    else {
+      socket.emit("send", { data: singleText.value, to });
+      message.success("私聊成功！");
+      singleText.value = "";
+    }
+  }
+}
+
 onMounted(() => {
   loadUser();
   loadTop5User();
@@ -1049,10 +1161,13 @@ onMounted(() => {
   getPokemon().then((res) => {
     pokemonsLen.value = res.data.data;
   });
+  ws();
 });
 
 onBeforeUnmount(() => {
   timer.value && clearInterval(timer.value);
+
+  socket && socket.disconnect();
 });
 </script>
 

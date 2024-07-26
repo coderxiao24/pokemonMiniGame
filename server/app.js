@@ -4,7 +4,6 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 
-const indexRouter = require("./routes/index");
 const pokemonsRouter = require("./routes/pokemons");
 const usersRouter = require("./routes/users");
 const uploadRouter = require("./routes/upload");
@@ -44,6 +43,8 @@ app.use((req, res, next) => {
         {
           _id: payload._id,
           username: payload.username,
+          nickname: payload.nickname,
+          avatar: payload.avatar,
         },
         "1d"
       );
@@ -55,14 +56,13 @@ app.use((req, res, next) => {
   } else next();
 });
 
-app.use("/", indexRouter);
 app.use("/pokemons", pokemonsRouter);
 app.use("/users", usersRouter);
 app.use("/upload", uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  res.status(404).sendFile(__dirname + "/public/index.html");
+  next(createError(404));
 });
 
 // error handler

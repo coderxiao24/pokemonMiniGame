@@ -28,6 +28,8 @@ const UsersController = {
         {
           _id: data[0]._id,
           username: data[0].username,
+          nickname: data[0].nickname,
+          avatar: data[0].avatar,
         },
         "1d"
       );
