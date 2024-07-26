@@ -1079,12 +1079,12 @@ const rankingTypeChange = () => {
 
 const loading = ref<boolean>(false);
 const loadTop5User = () => {
+  if (rankingType.value == 2) return;
   loading.value = true;
   getUserTop5({ rankingType: rankingType.value }).then((res) => {
     loading.value = false;
 
     if (res.data.ok === 1) {
-      message.success("排行榜自动刷新成功！");
       top5Users.value = res.data.data;
     }
   });
