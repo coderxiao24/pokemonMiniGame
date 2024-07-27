@@ -29,6 +29,16 @@ function start(server) {
       });
     });
 
+    socket.on("Offline", (msg) => {
+      console.log(111, msg);
+      Array.from(io.sockets.sockets).forEach((item) => {
+        console.log(item[1]);
+        if (msg.users.includes(item[1].user._id)) {
+          item[1].emit("Offline", msg.remark);
+        }
+      });
+    });
+
     socket.on("disconnect", () => {
       sendBroadList(io);
     });

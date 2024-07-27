@@ -47,7 +47,7 @@
           </a-card-meta>
 
           <a-row style="margin: 12px 0 0">
-            <a-col span="24" v-if="clickCount === 6">
+            <a-col span="24" v-if="clickCount === 5">
               <a-row>
                 <a-col span="6"
                   ><span
@@ -63,15 +63,62 @@
                   />
                 </a-col>
 
-                <a-col span="6"
-                  ><span
-                    style="font-size: 1.5em; font-weight: bolder; color: orange"
-                    >作弊选项:</span
+                <a-col span="4">
+                  <a-button
+                    style="background-color: orange"
+                    @click="cheat('money', 10000)"
+                    >加钱</a-button
                   >
                 </a-col>
-                <a-col span="6">
-                  <a-button style="background-color: orange" @click="cheat"
-                    >加1W元</a-button
+                <a-col span="4">
+                  <a-button
+                    style="background-color: orange"
+                    @click="cheat('ballNum', 10)"
+                    >加球</a-button
+                  >
+                </a-col>
+                <a-col span="4">
+                  <a-button
+                    style="background-color: orange"
+                    @click="cheat('ad', 10)"
+                    >加ad</a-button
+                  >
+                </a-col>
+
+                <a-col span="6"
+                  ><span style="font-weight: bolder; color: red"
+                    >强制下线:</span
+                  >
+                </a-col>
+                <a-col span="18">
+                  <a-select
+                    v-model:value="selectUsers"
+                    mode="multiple"
+                    style="width: 100%"
+                    size="small"
+                  >
+                    <a-select-option
+                      :value="item._id"
+                      v-for="item in onlineUsers"
+                      >{{ item.nickname }}</a-select-option
+                    >
+                  </a-select>
+                </a-col>
+                <a-col span="6"
+                  ><span style="font-weight: bolder; color: red">备注:</span>
+                </a-col>
+                <a-col span="14">
+                  <a-input
+                    v-model:value="remark"
+                    mode="multiple"
+                    style="width: 100%"
+                    placeholder="下线备注"
+                    size="small"
+                  />
+                </a-col>
+                <a-col span="4">
+                  <a-button danger type="primary" @click="Offline" size="small"
+                    >下线</a-button
                   >
                 </a-col>
               </a-row>
@@ -150,21 +197,38 @@
               },
               {
                 name: '精灵球',
-                desc: '用于捕捉宝可梦',
+                desc: '抓宝可梦',
                 money: 100 * userInfo.ballNum,
                 field: 'ballNum',
+              },
+              {
+                name: '支持作者',
+                desc: '买杯咖啡',
+                key: 'author',
               },
             ]"
           >
             <template #bodyCell="{ text, column, record }">
               <template v-if="column.dataIndex === 'money'">
                 <span style="color: orange; font-weight: bolder">
-                  ￥{{ text }}</span
+                  ￥{{ record.key === "author" ? "随意" : text }}</span
                 >
               </template>
 
               <template v-if="column.key === 'action'">
-                <a-button size="small" type="primary" @click="buy(record)"
+                <a-button
+                  size="small"
+                  type="primary"
+                  v-if="record.key === 'author'"
+                  style="background-color: orange"
+                  @click="open2 = true"
+                  >打赏</a-button
+                >
+                <a-button
+                  size="small"
+                  type="primary"
+                  @click="buy(record)"
+                  v-else
                   >购买</a-button
                 >
               </template>
@@ -735,12 +799,37 @@
         </a-card-grid>
       </a-card>
     </a-modal>
+
+    <a-modal
+      v-model:open="open2"
+      :footer="null"
+      :bodyStyle="{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+      }"
+    >
+      <template #title>
+        <span style="font-weight: bolder; color: orange">为作者充电</span>
+      </template>
+      <img src="/payQr.jpg" alt="支付宝收款码" style="width: 80%" />
+      <div>为作者提供开发创意？请联系vx:13140022101</div>
+    </a-modal>
   </div>
 </template>
 <script lang="ts" setup>
 import * as echarts from "echarts";
 
-import { ref, toRaw, onMounted, nextTick, h, onBeforeUnmount } from "vue";
+import {
+  ref,
+  toRaw,
+  onMounted,
+  nextTick,
+  h,
+  onBeforeUnmount,
+  createVNode,
+} from "vue";
 
 import {
   SettingOutlined,
@@ -752,6 +841,7 @@ import {
   ArrowRightOutlined,
   DollarTwoTone,
   RedoOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons-vue";
 import { getPokemon } from "@/api/pokemon";
 import { getUser, editUser, setFreePokemon, getUserTop5 } from "@/api/users";
@@ -760,7 +850,7 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 import { baseUrl } from "@/config/index";
 
-import { message, notification } from "ant-design-vue";
+import { message, notification, Modal } from "ant-design-vue";
 
 import { io } from "socket.io-client";
 
@@ -779,6 +869,7 @@ const logout = () => {
 
 const open = ref<boolean>(false);
 const open1 = ref<boolean>(false);
+const open2 = ref<boolean>(false);
 const look = ref<boolean>(false);
 
 const currentPokemon = ref<any>({});
@@ -938,13 +1029,15 @@ const sell = (record) => {
     }
   });
 };
-const cheat = () => {
+const cheat = (field, value) => {
+  const data = {};
+  data[field] = value;
   editUser({
     _id: userInfo.value._id,
-    data: { money: 10000 },
+    data,
   }).then((res) => {
     if (res.data.ok === 1) {
-      message.success(`作弊成功,获得1W元！`);
+      message.success(`作弊成功,${field}增加${value}！`);
       loadUser();
     }
   });
@@ -1047,15 +1140,16 @@ const clickCount = ref<number>(0);
 const lastClickTime = ref<number>(Date.now());
 
 const dev = () => {
-  if (clickCount.value < 6) {
+  if (!userInfo.value.admin) return;
+  if (clickCount.value < 5) {
     if (Date.now() - lastClickTime.value <= 500) {
       clickCount.value++;
     } else clickCount.value = 0;
 
     if (clickCount.value >= 3) {
-      clickCount.value == 6
+      clickCount.value == 5
         ? message.success(`已进入开发者模式，再次点击以退出开发者模式`)
-        : message.info(`再点${6 - clickCount.value}次进入开发者模式`);
+        : message.info(`再点${5 - clickCount.value}次进入开发者模式`);
     }
   } else {
     clickCount.value = 0;
@@ -1096,13 +1190,13 @@ let socket = null;
 
 const onlineUsers = ref<Array>([]);
 const ws = () => {
-  socket = io(`ws://123.57.91.8:1124?token=${localStorage.getItem("token")}`);
+  // socket = io(`ws://123.57.91.8:1124?token=${localStorage.getItem("token")}`);
 
-  // socket = io(
-  //   `ws://${window.location.hostname}:1124?token=${localStorage.getItem(
-  //     "token"
-  //   )}`
-  // );
+  socket = io(
+    `ws://${window.location.hostname}:1124?token=${localStorage.getItem(
+      "token"
+    )}`
+  );
 
   socket.on("connect", () => {
     socket.emit("onlineUsers");
@@ -1118,6 +1212,9 @@ const ws = () => {
     onlineUsers.value = Array.from(
       new Map(msg.data.map((item) => [item._id, item])).values()
     );
+    selectUsers.value = selectUsers.value.filter((v) =>
+      onlineUsers.value.find((item) => item._id === v)
+    );
   });
   socket.on("welcome", (msg) => {
     notification.success({
@@ -1130,6 +1227,15 @@ const ws = () => {
   });
   socket.on("send", (msg) => {
     message.info(`来自${msg.user.nickname}的私聊:${msg.data}`);
+  });
+
+  socket.on("Offline", (remark) => {
+    logout();
+    Modal.info({
+      title: "系统管理员使你强制下线了",
+      icon: createVNode(CloseCircleOutlined),
+      content: `备注信息：${remark}。如有疑问，请联系vx:13140022101`,
+    });
   });
 };
 
@@ -1151,6 +1257,18 @@ function send(to) {
       singleText.value = "";
     }
   }
+}
+
+const selectUsers = ref<Array>([]);
+const remark = ref<string>("");
+
+function Offline() {
+  if (!selectUsers.value.length) {
+    message.error("还没选择让谁下线呢");
+    return;
+  }
+  socket.emit("Offline", { users: selectUsers.value, remark: remark.value });
+  remark.value = "";
 }
 
 onMounted(() => {
@@ -1192,5 +1310,11 @@ onBeforeUnmount(() => {
 .attacked img {
   animation: shake 0.3s;
   animation-timing-function: ease-in-out;
+}
+</style>
+
+<style scoped>
+:deep(.ant-card-body) {
+  padding: 8px !important;
 }
 </style>

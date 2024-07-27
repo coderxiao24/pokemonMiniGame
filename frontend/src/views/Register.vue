@@ -13,7 +13,7 @@
           :show-upload-list="false"
           :maxCount="1"
           accept="image/*"
-          :action="baseUrl + 'upload'"
+          :action="baseUrl + '/upload'"
           @change="handleChange"
         >
           <img
