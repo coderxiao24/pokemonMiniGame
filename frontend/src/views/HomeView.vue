@@ -37,12 +37,26 @@
               >
             </a-popconfirm>
           </template>
-          <a-card-meta :title="userInfo.nickname">
+          <a-card-meta>
             <template #avatar>
               <a-avatar
                 @click="dev"
                 :src="userInfo.avatar ? baseUrl + userInfo.avatar : null"
               />
+            </template>
+            <template #title>
+              {{ userInfo.nickname }}
+
+              <div style="float: right; padding-top: 1em; padding-right: 1em">
+                <a @click="open3 = true">
+                  <a-badge
+                    :count="news.filter((v) => !v.bRead).length"
+                    :offset="[6, 0]"
+                  >
+                    <BellTwoTone style="float: right; font-size: 2em" />
+                  </a-badge>
+                </a>
+              </div>
             </template>
           </a-card-meta>
 
@@ -50,12 +64,11 @@
             <a-col span="24" v-if="clickCount === 5">
               <a-row>
                 <a-col span="6"
-                  ><span
-                    style="font-size: 1.5em; font-weight: bolder; color: orange"
-                    >遇闪概率:</span
+                  ><span style="font-weight: bolder; color: orange"
+                    >我的遇闪概率:</span
                   >
                 </a-col>
-                <a-col span="6">
+                <a-col span="18">
                   <a-slider
                     v-model:value="shinyP"
                     :step="0.1"
@@ -63,31 +76,9 @@
                   />
                 </a-col>
 
-                <a-col span="4">
-                  <a-button
-                    style="background-color: orange"
-                    @click="cheat('money', 10000)"
-                    >加钱</a-button
-                  >
-                </a-col>
-                <a-col span="4">
-                  <a-button
-                    style="background-color: orange"
-                    @click="cheat('ballNum', 10)"
-                    >加球</a-button
-                  >
-                </a-col>
-                <a-col span="4">
-                  <a-button
-                    style="background-color: orange"
-                    @click="cheat('ad', 10)"
-                    >加ad</a-button
-                  >
-                </a-col>
-
                 <a-col span="6"
                   ><span style="font-weight: bolder; color: red"
-                    >强制下线:</span
+                    >选择用户:</span
                   >
                 </a-col>
                 <a-col span="18">
@@ -107,17 +98,57 @@
                 <a-col span="6"
                   ><span style="font-weight: bolder; color: red">备注:</span>
                 </a-col>
-                <a-col span="14">
+                <a-col span="18">
                   <a-input
                     v-model:value="remark"
                     mode="multiple"
                     style="width: 100%"
-                    placeholder="下线备注"
+                    placeholder="操作备注"
                     size="small"
                   />
                 </a-col>
+
+                <a-col span="4"
+                  ><span style="font-weight: bolder; color: red"
+                    >操作数值:</span
+                  >
+                </a-col>
                 <a-col span="4">
-                  <a-button danger type="primary" @click="Offline" size="small"
+                  <a-input-number
+                    v-model:value="actionValue"
+                    style="width: 100%"
+                  />
+                </a-col>
+                <a-col span="3">
+                  <a-button
+                    style="background-color: orange"
+                    @click="action('money')"
+                    >钱</a-button
+                  >
+                </a-col>
+                <a-col span="3">
+                  <a-button
+                    style="background-color: orange"
+                    @click="action('ballNum')"
+                    >球</a-button
+                  >
+                </a-col>
+                <a-col span="3">
+                  <a-button
+                    style="background-color: orange"
+                    @click="action('ad')"
+                    >ad</a-button
+                  >
+                </a-col>
+                <a-col span="3">
+                  <a-button
+                    style="background-color: orange"
+                    @click="action('shinyP')"
+                    >闪</a-button
+                  >
+                </a-col>
+                <a-col span="4">
+                  <a-button danger type="primary" @click="action('offline')"
                     >下线</a-button
                   >
                 </a-col>
@@ -327,7 +358,7 @@
                         />
                         <a-button
                           type="primary"
-                          @click="send(item._id)"
+                          @click="send(item)"
                           style="width: 60px"
                           >发送</a-button
                         >
@@ -716,6 +747,7 @@
     </a-modal>
 
     <a-modal
+      forceRender
       v-model:open="open1"
       title="电脑"
       destroyOnClose
@@ -801,6 +833,7 @@
     </a-modal>
 
     <a-modal
+      forceRender
       v-model:open="open2"
       :footer="null"
       :bodyStyle="{
@@ -814,13 +847,61 @@
         <span style="font-weight: bolder; color: orange">为作者充电</span>
       </template>
       <img src="/payQr.jpg" alt="支付宝收款码" style="width: 80%" />
-      <div>为作者提供开发创意？请联系vx:13140022101</div>
+      <div>为作者提供开发创意？反馈bug?</div>
+      <div>请联系vx:13140022101</div>
+    </a-modal>
+    <a-modal
+      forceRender
+      v-model:open="open3"
+      title="消息"
+      :cancelButtonProps="{
+        style: {
+          display: 'none',
+        },
+      }"
+      okText="一键已读"
+      @ok="
+        () => {
+          news.forEach((element) => {
+            if (!element.bRead) element.bRead = true;
+          });
+        }
+      "
+    >
+      <a-list :data-source="news" style="overflow-y: auto; max-height: 50vh">
+        <template #renderItem="{ item }">
+          <a-list-item>
+            <template #actions>
+              <a @click="item.bRead = true" v-if="!item.bRead">
+                <CheckOutlined
+              /></a>
+            </template>
+            <a-list-item-meta :description="item.time">
+              <template #title>
+                <span
+                  style="font-weight: bolder"
+                  :style="{
+                    color: item.type === 'all' ? '#1677ff' : '#FFA500',
+                  }"
+                  >{{ item.type === "all" ? "广播" : "私聊" }}</span
+                >-<a v-html="item.data"></a>
+              </template>
+              <template #avatar>
+                <a-badge
+                  :status="!item.bRead ? 'error' : 'processing'"
+                ></a-badge>
+                <a-avatar :src="item.avatar ? baseUrl + item.avatar : null" />
+              </template>
+            </a-list-item-meta>
+          </a-list-item>
+        </template>
+      </a-list>
     </a-modal>
   </div>
 </template>
 <script lang="ts" setup>
 import * as echarts from "echarts";
-
+import dayjs from "dayjs";
 import {
   ref,
   toRaw,
@@ -842,6 +923,8 @@ import {
   DollarTwoTone,
   RedoOutlined,
   CloseCircleOutlined,
+  BellTwoTone,
+  CheckOutlined,
 } from "@ant-design/icons-vue";
 import { getPokemon } from "@/api/pokemon";
 import { getUser, editUser, setFreePokemon, getUserTop5 } from "@/api/users";
@@ -870,6 +953,7 @@ const logout = () => {
 const open = ref<boolean>(false);
 const open1 = ref<boolean>(false);
 const open2 = ref<boolean>(false);
+const open3 = ref<boolean>(false);
 const look = ref<boolean>(false);
 
 const currentPokemon = ref<any>({});
@@ -904,8 +988,16 @@ const openPokemonModal = async (id) => {
       ? 2
       : 1;
 
-    if (currentPokemon.value.isShiny === 2)
+    if (currentPokemon.value.isShiny === 2) {
+      news.value.push({
+        data: `<span style='color:orange'>您</span>:我遇到了闪光${currentPokemon.value.name}!!!`,
+        avatar: userInfo.value.avatar,
+        type: "all",
+        bRead: true,
+        time: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+      });
       socket.emit("sendAll", `我遇到了闪光${currentPokemon.value.name}!!!`);
+    }
   }
 
   for (let i = 0; i < currentPokemon.value.feChain.length; i++) {
@@ -1026,19 +1118,6 @@ const sell = (record) => {
           computer.value = userInfo.value;
         }
       });
-    }
-  });
-};
-const cheat = (field, value) => {
-  const data = {};
-  data[field] = value;
-  editUser({
-    _id: userInfo.value._id,
-    data,
-  }).then((res) => {
-    if (res.data.ok === 1) {
-      message.success(`作弊成功,${field}增加${value}！`);
-      loadUser();
     }
   });
 };
@@ -1223,21 +1302,60 @@ const ws = () => {
     });
   });
   socket.on("sendAll", (msg) => {
+    news.value.push({
+      data: `${
+        msg.user._id == userInfo.value._id
+          ? "<span style='color:orange'>您</span>"
+          : msg.user.nickname
+      }:${msg.data}`,
+      avatar: msg.user.avatar,
+      type: "all",
+      bRead: false,
+      time: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+    });
     message.info(`来自${msg.user.nickname}的广播:${msg.data}`);
   });
   socket.on("send", (msg) => {
+    news.value.push({
+      data: `${msg.user.nickname}=><span style='color:orange'>您</span> : ${msg.data}`,
+      avatar: msg.user.avatar,
+      type: "single",
+      bRead: false,
+      time: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+    });
     message.info(`来自${msg.user.nickname}的私聊:${msg.data}`);
   });
 
-  socket.on("Offline", (remark) => {
-    logout();
-    Modal.info({
-      title: "系统管理员使你强制下线了",
-      icon: createVNode(CloseCircleOutlined),
-      content: `备注信息：${remark}。如有疑问，请联系vx:13140022101`,
-    });
+  socket.on("action", (data) => {
+    console.log(data);
+    const { remark, type, actionValue } = data;
+
+    const info = {
+      content: `备注信息：${remark || "无"}。如有疑问，请联系vx:13140022101`,
+    };
+
+    switch (type) {
+      case "offline":
+        logout();
+        info.title = "系统管理员使你强制下线了";
+        break;
+      case "shinyP":
+        shinyP.value = actionValue;
+        info.title = `系统管理员将你遇闪概率设置为${actionValue}%,1小时后或离开页面恢复正常闪率`;
+        setTimeout(() => {
+          shinyP.value = 1;
+        }, 1000 * 60 * 60);
+        break;
+      default:
+        cheat(type, actionValue);
+        info.title = "系统管理员对你的账号进行了操作";
+        break;
+    }
+
+    Modal.info(info);
   });
 };
+const news = ref<Array>([]);
 
 const allText = ref<string>("");
 const singleText = ref<string>("");
@@ -1246,13 +1364,27 @@ function send(to) {
     if (!allText.value) message.error("请输入要广播的消息");
     else {
       socket.emit("sendAll", allText.value);
+      news.value.push({
+        data: `<span style='color:orange'>您</span>:${allText.value}`,
+        avatar: userInfo.value.avatar,
+        type: "all",
+        bRead: true,
+        time: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+      });
       message.success("广播成功！");
       allText.value = "";
     }
   } else {
     if (!singleText.value) message.error("请输入要私聊的消息");
     else {
-      socket.emit("send", { data: singleText.value, to });
+      news.value.push({
+        data: `<span style='color:orange'>您</span>=>${to.nickname} : ${singleText.value}`,
+        avatar: userInfo.value.avatar,
+        type: "single",
+        bRead: true,
+        time: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+      });
+      socket.emit("send", { data: singleText.value, to: to._id });
       message.success("私聊成功！");
       singleText.value = "";
     }
@@ -1261,13 +1393,44 @@ function send(to) {
 
 const selectUsers = ref<Array>([]);
 const remark = ref<string>("");
+const actionValue = ref<number>(0);
 
-function Offline() {
+const cheat = (field, value) => {
+  const data = {};
+  data[field] = value;
+  editUser({
+    _id: userInfo.value._id,
+    data,
+  }).then((res) => {
+    if (res.data.ok === 1) {
+      loadUser();
+    }
+  });
+};
+
+function action(type) {
+  if (!selectUsers.value.length) {
+    message.error("还没选择用户呢");
+    return;
+  }
+
+  socket.emit("action", {
+    users: selectUsers.value,
+    remark: remark.value,
+    type,
+    actionValue: actionValue.value,
+  });
+  message.success("操作成功！");
+  actionValue.value = 0;
+  remark.value = "";
+}
+
+function offline() {
   if (!selectUsers.value.length) {
     message.error("还没选择让谁下线呢");
     return;
   }
-  socket.emit("Offline", { users: selectUsers.value, remark: remark.value });
+  socket.emit("offline", { users: selectUsers.value, remark: remark.value });
   remark.value = "";
 }
 
@@ -1311,10 +1474,16 @@ onBeforeUnmount(() => {
   animation: shake 0.3s;
   animation-timing-function: ease-in-out;
 }
+.ant-modal-content {
+  padding: 12px !important;
+}
 </style>
 
 <style scoped>
 :deep(.ant-card-body) {
+  padding: 8px !important;
+}
+:deep(.ant-list-item) {
   padding: 8px !important;
 }
 </style>
