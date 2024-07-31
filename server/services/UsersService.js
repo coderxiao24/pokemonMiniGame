@@ -21,7 +21,6 @@ const UsersService = {
     return { ok: 1, data: res, message: "注册成功" };
   },
   getUser: (data) => {
-    console.log(data);
     return UserModel.find(data);
   },
   getUserTop5: (data) => {
@@ -67,8 +66,6 @@ const UsersService = {
   },
   editUser: (body) => {
     const { _id, data } = body;
-
-    console.log(_id, data);
 
     if (data.pokemons) {
       const pokemons = data.pokemons;

@@ -19,22 +19,24 @@ function start(server) {
     }
 
     socket.on("sendAll", (data) => {
+      console.log(`广播消息日志-${socket.user.nickname}的广播:${data}`);
       socket.broadcast.emit("sendAll", createMessage(socket.user, data));
     });
     socket.on("send", (msg) => {
       Array.from(io.sockets.sockets).forEach((item) => {
         if (item[1].user._id === msg.to) {
+          console.log(
+            `私聊消息日志-${socket.user.nickname} => ${item[1].user.nickname}:${msg.data}`
+          );
           item[1].emit("send", createMessage(socket.user, msg.data));
         }
       });
     });
 
-    socket.on("Offline", (msg) => {
-      console.log(111, msg);
+    socket.on("action", (msg) => {
       Array.from(io.sockets.sockets).forEach((item) => {
-        console.log(item[1]);
         if (msg.users.includes(item[1].user._id)) {
-          item[1].emit("Offline", msg.remark);
+          item[1].emit("action", msg);
         }
       });
     });
