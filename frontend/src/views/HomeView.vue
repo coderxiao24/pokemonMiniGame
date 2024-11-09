@@ -1271,10 +1271,13 @@ const onlineUsers = ref<Array>([]);
 const ws = () => {
   // socket = io(`ws://123.57.91.8:1124?token=${localStorage.getItem("token")}`);
 
+  let protocol = "";
+  if (window.location.protocol === "https:") protocol = "wss";
+  else protocol = "ws";
   socket = io(
-    `ws://${window.location.hostname}:1124?token=${localStorage.getItem(
-      "token"
-    )}`
+    `${protocol}://${
+      window.location.hostname
+    }:1124?token=${localStorage.getItem("token")}`
   );
 
   socket.on("connect", () => {

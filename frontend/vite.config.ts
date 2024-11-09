@@ -17,8 +17,8 @@ export default defineConfig({
     host: true,
     proxy: {
       "/xkx": {
-        target: "http://123.57.91.8:1124/",
-        // target: "http://localhost:1124/",
+        // target: "http://123.57.91.8:1124/",
+        target: "http://localhost:1188/",
         changeOrigin: true,
         rewrite: (path) => {
           return path.replace(/\/xkx/, "");
