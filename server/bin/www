@@ -6,8 +6,10 @@
 
 const app = require("../app");
 const debug = require("debug")("pokemonapp:server");
+const https = require("https");
 const http = require("http");
 const wss = require("./wss");
+const fs = require("fs");
 
 // 连接数据库
 require("../config/db.config");
@@ -26,6 +28,13 @@ app.set("port", port);
  */
 
 const server = http.createServer(app);
+// const server = https.createServer(
+//   {
+//     key: fs.readFileSync("/etc/nginx/cert/pokemon.xiaokaixuan.com.key"), // 私钥路径
+//     cert: fs.readFileSync("/etc/nginx/cert/pokemon.xiaokaixuan.com.pem"), // 证书路径
+//   },
+//   app
+// );
 
 wss.start(server);
 /**
